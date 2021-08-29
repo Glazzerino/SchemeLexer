@@ -41,12 +41,13 @@ Lexer::Lexer() {
    acceptor_decode.insert(std::make_pair(102, "Decimal"));
    acceptor_decode.insert(std::make_pair(103, "Operador"));
    load_special_ops();
+   load_from_file();
 }
 
 void Lexer::tokenize(std::string input) {
    std::string token = "";
    int state = 0;
-   
+   std::cout << "input: " << input << "\n"; 
    for (char c : input) {
       Sym sym = scan_char(c);
       // Handle accepting and error state
@@ -71,8 +72,9 @@ void Lexer::tokenize(std::string input) {
          }
          tokens.push_back(std::make_pair(type, token));
          tokens.push_back(std::make_pair(type, std::string(1, c)));
-         std::cout << acceptor_decode[state] << " " << token << "\n";
+         // std::cout << acceptor_decode[state] << " " << token << "\n";
          token = " ";
+         state = 0;
       }
       std::cout << "sym:" << sym << std::endl;
 
