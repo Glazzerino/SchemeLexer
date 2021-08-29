@@ -41,7 +41,9 @@ void Lexer::tokenize(std::string input) {
       SYM sym = scan_char(c);
       if (state == 100 || state == -1)
          return;
-      int state = trans_matrix[state][sym];
+      // print sym
+      std::cout << "sym:" << sym << std::endl;
+      state = trans_matrix[state][sym];
       token += c;
       // Print state
       std::cout << "STATE:" << std::to_string(state) << "\n";
