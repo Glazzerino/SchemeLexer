@@ -66,6 +66,8 @@ void Lexer::tokenize(std::string input) {
    if (state <= 100 || state != -1) {
       state = trans_matrix[Sym::SPECIAL][state];
       LexemeType type = classify_lexeme(state);
+      if (reserved_words.find(token) != reserved_words.end())
+         type = LexemeType::reserved;
       tokens.push_back(std::make_pair(type, token));
       state = 0;
    }
@@ -92,7 +94,7 @@ void Lexer::load_special_ops() {
 }
 
 void Lexer::load_reserved_words() {
-   load_from_file("./reserved_words.txt", reserved_words);
+   load_from_file("./reserved_word.txt", reserved_words);
 }
 
 Sym Lexer::scan_char(char c) {

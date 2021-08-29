@@ -3,6 +3,7 @@ enum LexemeType {
   decimal,
   identifier,
   special,
+  reserved,
   error,
 };
 
@@ -18,6 +19,8 @@ static std::string lexem_type_to_string(LexemeType type) {
       return "special";
     case error:
       return "error";
+    case reserved:
+      return "reserved";
     default:
       return "";
   }
