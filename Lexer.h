@@ -24,7 +24,11 @@ private:
 Lexer::Lexer() {
    tokens.reserve(100);
    trans_matrix = {
-      
+      // digit, special, dot, char
+      {1, 100, -1, 3},
+      {2, 100, 2, 3},
+      {2, 100, -1, -1},
+      {3, 100, -1, 3} 
    };
    load_special_ops();
 }
@@ -33,14 +37,15 @@ void Lexer::tokenize(std::string input) {
    std::string token = "";
    int state = 0;
    for (char c : input) {
-      std::cout << c << std::endl;
+      // std::cout << c << std::endl;
       SYM sym = scan_char(c);
-      int state = trans_matrix[state][sym];
-      if (state == 100 || state == SYM::ERROR)
+      if (state == 100 || state == -1)
          return;
-      
+      int state = trans_matrix[state][sym];
+      token += c;
       // Print state
       std::cout << "STATE:" << std::to_string(state) << "\n";
+       
    }
 }
 
