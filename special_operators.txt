@@ -1,12 +1,11 @@
-+
--
-/
-<
->
-<=
->=
-=
-(
-*   
-)
- 
++,signo de mas
+-,guión
+/,slash 
+<,menor que
+>,mayor que
+<=,menor o igual que
+>=,mayor o igual que
+=,igual
+(,paréntesis abierto
+*,símbolo especial *   
+),paréntesis cerrado

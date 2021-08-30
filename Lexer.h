@@ -14,11 +14,12 @@ public:
    void tokenize(std::string input);
    void scan(std::string test);
    void print_tokens();
+   void lexerScheme(std::string filename);
 private:
    std::vector<std::pair<LexemeType, std::string>> tokens;
    Sym classify_item(char c);
    std::vector<std::vector<int>> trans_matrix;
-   std::unordered_set<std::string> special_ops;
+   std::unordered_map<std::string,std::string> special_ops;
    std::unordered_set<std::string> reserved_words;
    void load_from_file(std::string filename, std::unordered_set<std::string>& collection);
    void load_special_ops();
@@ -75,26 +76,58 @@ void Lexer::tokenize(std::string input) {
 
 void Lexer::print_tokens() {
    for (auto pair : tokens) {
-      std::cout << lexem_type_to_string(pair.first) << " " << pair.second << "\n";
+      if (pair.second == " ")
+         continue;
+      std::cout << pair.second << ": ";
+      switch (pair.first) {
+         case LexemeType::decimal:
+            std::cout << "constante de punto flotante " << pair.second << "\n";
+            break;
+         case LexemeType::error:
+            std::cout << "valor erróneo\n";
+            break;
+         case LexemeType::identifier:
+            std::cout << "identificador\n";
+            break;
+         case LexemeType::integer:
+            std::cout << "constante entera " << pair.second << "\n";
+            break;
+         case LexemeType::reserved:
+            std::cout << "palabra reservada " << pair.second << "\n";
+            break;
+         case LexemeType::special:
+            std::cout << "operador especial " << special_ops[pair.second] << "\n";
+            break;
+      }
    }
 }
 
+
 inline void Lexer::load_from_file(std::string filename, std::unordered_set<std::string>& collection) {
-   std::ifstream file(filename);
-   std::string line;
-   std::cout << "Loading file " << filename << "\n";
-   while (std::getline(file, line)) {
-      collection.insert(line);
-      std::cout << line << "\n";
-   }
+   
 }
 
 void Lexer::load_special_ops() {
-   load_from_file("./special_operators.txt", special_ops);
+   std::ifstream file("./special_operators.txt");
+   std::string line;
+   while (std::getline(file, line)) {
+      unsigned int separator = line.find(',');
+      if (separator == -1) {
+         std::cout << "separator not found in operator file\n";
+      } 
+      std::string op = line.substr(0, separator);
+      std::cout << "op: " << op << "\n";
+      std::string desc = line.substr(separator);
+      special_ops.insert(std::make_pair(op, desc));
+   }
 }
 
 void Lexer::load_reserved_words() {
-   load_from_file("./reserved_word.txt", reserved_words);
+   std::ifstream file("./reserved_word.txt");
+   std::string line;
+   while (std::getline(file, line)) {
+      reserved_words.insert(line);
+   }
 }
 
 Sym Lexer::scan_char(char c) {
@@ -104,6 +137,8 @@ Sym Lexer::scan_char(char c) {
       return Sym::CHAR;
    if (c == '.')
       return Sym::DOT;
+   if (c == ' ' || c == '\n' || c == '\t')
+      return Sym::SPECIAL;
    std::string s = "";
    s += c;
    if (special_ops.find(s) != special_ops.end())
@@ -112,23 +147,33 @@ Sym Lexer::scan_char(char c) {
 }
 
 LexemeType Lexer::classify_lexeme(int state) {
-         LexemeType type = LexemeType::error;
-         switch(state) {
-            case 100:
-              type = LexemeType::integer;
-              break;
-            case 101:
-               type = LexemeType::identifier;
-               break;
-            case 102:
-               type = LexemeType::decimal;
-               break;
-            case 103:
-               type = LexemeType::special;
-               break;
-            case -1:
-               type = LexemeType::error;
-               break;
-         }
-      return type;
+      LexemeType type = LexemeType::error;
+      switch(state) {
+         case 100:
+            type = LexemeType::integer;
+            break;
+         case 101:
+            type = LexemeType::identifier;
+            break;
+         case 102:
+            type = LexemeType::decimal;
+            break;
+         case 103:
+            type = LexemeType::special;
+            break;
+         case -1:
+            type = LexemeType::error;
+            break;
+      }
+   return type;
+}
+
+void Lexer::lexerScheme(std::string filename) {
+   std::ifstream file(filename);
+   std::string line;
+   while (std::getline(file, line)) {
+      std::cout << line << "\n";
+      tokenize(line);
+      print_tokens();
+   }
 }
