@@ -48,20 +48,22 @@ void Lexer::tokenize(std::string input) {
    std::cout << "input: " << input << "\n"; 
    bool is_comment = false;
    size_t counter = 0;
+
    for (char c : input) {
       Sym sym = scan_char(c);
       // If comment char is found, ignore everything until newline
+      if (c == ';')
+         is_comment = true;
       if (is_comment) {
-         token += c;
-         if (c == '\n' || c == '\r' || counter++ == input.size() - 1) {
+         if (c == '\n' || counter == input.size() - 1) {
             is_comment = false;
             tokens.push_back(std::make_pair(LexemeType::comment, token));
             token = "";
+         } else {
+            token += c;
          }
          continue;
       }
-      if (c == ';')
-         is_comment = true;
 
       // Handle accepting and error state
       if (state >= 100 || state == -1) {
@@ -72,8 +74,10 @@ void Lexer::tokenize(std::string input) {
          token = "";
          state = 0;
       } 
-      token += c;
+      if (c != ' ')
+         token += c;
       state = trans_matrix[state][sym];
+      counter++;
    }
 
    // manage final token
@@ -89,7 +93,7 @@ void Lexer::tokenize(std::string input) {
 
 void Lexer::print_tokens() {
    for (auto pair : tokens) {
-      if (pair.second == " ")
+      if (pair.second == " " || pair.second == "\n")
          continue;
       std::cout << pair.second << " ";
       switch (pair.first)  {
@@ -127,7 +131,7 @@ void Lexer::load_special_ops() {
          std::cout << "separator not found in operator file\n";
       } 
       std::string op = line.substr(0, separator);
-      std::cout << "op: " << op << "\n";
+      // std::cout << "op: " << op << "\n";
       std::string desc = line.substr(separator);
       special_ops.insert(std::make_pair(op, desc));
    }
