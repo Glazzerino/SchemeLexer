@@ -66,12 +66,14 @@ void Lexer::tokenize(std::string input) {
       // Handle accepting and error state
       if (state >= 100 || state == -1) {
          LexemeType type = classify_lexeme(state);
+         if (reserved_words.find(token) != reserved_words.end()) 
+            type = LexemeType::reserved;
          tokens.push_back(std::make_pair(type, token));
          token = "";
          state = 0;
-      }
-      state = trans_matrix[state][sym];
+      } 
       token += c;
+      state = trans_matrix[state][sym];
    }
 
    // manage final token
@@ -114,11 +116,6 @@ void Lexer::print_tokens() {
             break;
       }
    }
-}
-
-
-inline void Lexer::load_from_file(std::string filename, std::unordered_set<std::string>& collection) {
-   
 }
 
 void Lexer::load_special_ops() {
