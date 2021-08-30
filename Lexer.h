@@ -17,7 +17,6 @@ public:
    void lexerScheme(std::string filename);
 private:
    std::vector<std::pair<LexemeType, std::string>> tokens;
-   Sym classify_item(char c);
    std::vector<std::vector<int>> trans_matrix;
    std::unordered_map<std::string,std::string> special_ops;
    std::unordered_set<std::string> reserved_words;
@@ -49,52 +48,48 @@ void Lexer::tokenize(std::string input) {
    bool is_comment = false;
    size_t counter = 0;
 
+   // classify lexeemes by state
    for (char c : input) {
-      Sym sym = scan_char(c);
-      // If comment char is found, ignore everything until newline
-      if (c == ';')
+
+      if (c == ';') {
          is_comment = true;
+         state = 0;
+      }
+
       if (is_comment) {
-         if (c == '\n' || counter == input.size() - 1) {
+         if (c == '\n') {
             is_comment = false;
             tokens.push_back(std::make_pair(LexemeType::comment, token));
             token = "";
-         } else {
-            token += c;
          }
+         token += c;
          continue;
       }
 
-      // Handle accepting and error state
+      Sym sym = scan_char(c);
+      state = trans_matrix[state][sym];
+      // manage acceptor and error states
       if (state >= 100 || state == -1) {
          LexemeType type = classify_lexeme(state);
-         if (reserved_words.find(token) != reserved_words.end()) 
+         if (reserved_words.find(token) != reserved_words.end()) {
             type = LexemeType::reserved;
+         }
          tokens.push_back(std::make_pair(type, token));
-         token = "";
+         tokens.push_back(std::make_pair(LexemeType::special, std::string(1, c)));
          state = 0;
-      } 
-      if (c != ' ')
-         token += c;
-      state = trans_matrix[state][sym];
-      counter++;
-   }
+         token = "";
+         continue;
+      }
 
-   // manage final token
-   if (state <= 100 || state != -1) {
-      state = trans_matrix[Sym::SPECIAL][state];
-      LexemeType type = classify_lexeme(state);
-      if (reserved_words.find(token) != reserved_words.end())
-         type = LexemeType::reserved;
-      tokens.push_back(std::make_pair(type, token));
-      state = 0;
+      token += c;
    }
 }
-
 void Lexer::print_tokens() {
    for (auto pair : tokens) {
-      if (pair.second == " " || pair.second == "\n")
+      std::string test = pair.second;
+      if (pair.second == " " || pair.second == "\n" || pair.second == "") {
          continue;
+      }
       std::cout << pair.second << " ";
       switch (pair.first)  {
          case LexemeType::decimal:
@@ -152,7 +147,10 @@ Sym Lexer::scan_char(char c) {
       return Sym::CHAR;
    if (c == '.')
       return Sym::DOT;
-   if (c == ' ' || c == '\n' || c == '\t')
+   if (c == '\0') {
+      std::cout << "end of file\n";
+   }
+   if (c == ' ' || c == '\n' || c == '\t' || c == '\0')
       return Sym::SPECIAL;
    std::string s = "";
    s += c;

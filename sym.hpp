@@ -3,6 +3,6 @@ enum Sym {
    SPECIAL= 1,
    DOT = 2,
    CHAR = 3,
-   ERROR = 4,
+   ERROR = -1,
    DELIMITER = 5,
 };
