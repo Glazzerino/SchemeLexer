@@ -52,7 +52,13 @@ void Lexer::tokenize(std::string input) {
    for (char c : input) {
 
       if (c == ';') {
-         is_comment = true;
+         // check if token is not empty. In this case, it is an error
+         if (token.size() > 1) {
+            tokens.push_back(std::make_pair(LexemeType::error, token));
+            token = "";
+         } else {
+            is_comment = true;
+         }
          state = 0;
       }
 
@@ -80,7 +86,6 @@ void Lexer::tokenize(std::string input) {
          token = "";
          continue;
       }
-
       token += c;
    }
 }
@@ -127,7 +132,7 @@ void Lexer::load_special_ops() {
       } 
       std::string op = line.substr(0, separator);
       // std::cout << "op: " << op << "\n";
-      std::string desc = line.substr(separator);
+      std::string desc = line.substr(separator + 1);
       special_ops.insert(std::make_pair(op, desc));
    }
 }
@@ -143,7 +148,8 @@ void Lexer::load_reserved_words() {
 Sym Lexer::scan_char(char c) {
    if (isdigit(c))
       return Sym::DIGIT;
-   if (isalpha(c))
+   // Considers set!, req? and null?
+   if (isalpha(c) || c == '!' || c == '?')
       return Sym::CHAR;
    if (c == '.')
       return Sym::DOT;
@@ -152,6 +158,7 @@ Sym Lexer::scan_char(char c) {
    }
    if (c == ' ' || c == '\n' || c == '\t' || c == '\0')
       return Sym::SPECIAL;
+   
    std::string s = "";
    s += c;
    if (special_ops.find(s) != special_ops.end())
@@ -184,9 +191,10 @@ LexemeType Lexer::classify_lexeme(int state) {
 void Lexer::lexerScheme(std::string filename) {
    std::ifstream file(filename);
    std::string line;
+   std::string input = "";
    while (std::getline(file, line)) {
-      std::cout << line << "\n";
-      tokenize(line);
-      print_tokens();
+      input += line + "\n";
    }
+   tokenize(input);
+   print_tokens();
 }
