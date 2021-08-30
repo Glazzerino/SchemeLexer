@@ -38,10 +38,6 @@ Lexer::Lexer() {
       {2, 102, -1, -1},
       {3, 101, -1, 3} 
    };
-   acceptor_decode.insert(std::make_pair(100, "Entero"));
-   acceptor_decode.insert(std::make_pair(101, "Identificador"));
-   acceptor_decode.insert(std::make_pair(102, "Decimal"));
-   acceptor_decode.insert(std::make_pair(103, "Operador"));
    load_special_ops();
    load_reserved_words();
 }
@@ -50,8 +46,23 @@ void Lexer::tokenize(std::string input) {
    std::string token = "";
    int state = 0;
    std::cout << "input: " << input << "\n"; 
+   bool is_comment = false;
+   size_t counter = 0;
    for (char c : input) {
       Sym sym = scan_char(c);
+      // If comment char is found, ignore everything until newline
+      if (is_comment) {
+         token += c;
+         if (c == '\n' || c == '\r' || counter++ == input.size() - 1) {
+            is_comment = false;
+            tokens.push_back(std::make_pair(LexemeType::comment, token));
+            token = "";
+         }
+         continue;
+      }
+      if (c == ';')
+         is_comment = true;
+
       // Handle accepting and error state
       if (state >= 100 || state == -1) {
          LexemeType type = classify_lexeme(state);
@@ -61,8 +72,8 @@ void Lexer::tokenize(std::string input) {
       }
       state = trans_matrix[state][sym];
       token += c;
-      // Print state
    }
+
    // manage final token
    if (state <= 100 || state != -1) {
       state = trans_matrix[Sym::SPECIAL][state];
@@ -78,8 +89,8 @@ void Lexer::print_tokens() {
    for (auto pair : tokens) {
       if (pair.second == " ")
          continue;
-      std::cout << pair.second << ": ";
-      switch (pair.first) {
+      std::cout << pair.second << " ";
+      switch (pair.first)  {
          case LexemeType::decimal:
             std::cout << "constante de punto flotante " << pair.second << "\n";
             break;
@@ -97,6 +108,9 @@ void Lexer::print_tokens() {
             break;
          case LexemeType::special:
             std::cout << "operador especial " << special_ops[pair.second] << "\n";
+            break;
+         case LexemeType::comment:
+            std::cout << "comentario\n";
             break;
       }
    }

@@ -5,6 +5,7 @@ enum LexemeType {
   special,
   reserved,
   error,
+  comment
 };
 
 static std::string lexem_type_to_string(LexemeType type) {
@@ -21,6 +22,8 @@ static std::string lexem_type_to_string(LexemeType type) {
       return "error";
     case reserved:
       return "reserved";
+    case comment:
+      return "comment";
     default:
       return "";
   }
